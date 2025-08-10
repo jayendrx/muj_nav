@@ -47,12 +47,12 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      - name: List deployed files
-        run: |
-          ls -lR .
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
         with:
             artifact_name: html_pages
+      - name: List deployed files after extraction
+        run: |
+          ls -lR ${{ github.workspace }}
       
