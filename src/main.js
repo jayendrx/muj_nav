@@ -21,10 +21,10 @@ camera.position.set(0, 5, 10);
 
 //model
 const loader = new GLTFLoader();
-loader.load("/universityModel.glb", (gltf) => {
-    const model = gltf.scene;
-    model.position.set(0, -1, 0);
-    scene.add(model);
+loader.load("./universityModel.glb", (gltf) => {
+  const model = gltf.scene;
+  model.position.set(0, -1, 0);
+  scene.add(model);
 })
 
 //light
