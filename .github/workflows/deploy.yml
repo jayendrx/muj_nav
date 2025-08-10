@@ -27,8 +27,9 @@ jobs:
         run: npm ci
 
       - name: Build
-        run: npm run build
-
+        run: |
+          npm run build
+          ls dist
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
@@ -46,8 +47,12 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
+      - name: List deployed files
+        run: |
+          ls -lR .
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
         with:
             artifact_name: html_pages
+      
