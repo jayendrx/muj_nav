@@ -19,17 +19,24 @@ const camera = new THREE.PerspectiveCamera(
 );
 camera.position.set(0, 5, 10);
 
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 // get blender objects
-function get_blender_objects(model){
+async function get_blender_objects(model){
 
-  const prefix = "waypoint_"; // Replace with your prefix
+  const prefix = "waypoint_";
   const matchingObjects = [];
   model.traverse((child) => {
     if (child.name && child.name.startsWith(prefix)) {
       matchingObjects.push(child);
     }
   });
-  console.log(matchingObjects);
+  for (const obj of matchingObjects) {
+    console.log(obj.name, obj.position.x, obj.position.y, obj.position.z);
+    camera.position.set(obj.position.x, obj.position.y, obj.position.z);
+    await sleep(1000);
+  }
 }
 
 //model
