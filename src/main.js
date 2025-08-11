@@ -19,12 +19,26 @@ const camera = new THREE.PerspectiveCamera(
 );
 camera.position.set(0, 5, 10);
 
+// get blender objects
+function get_blender_objects(model){
+
+  const prefix = "waypoint_"; // Replace with your prefix
+  const matchingObjects = [];
+  model.traverse((child) => {
+    if (child.name && child.name.startsWith(prefix)) {
+      matchingObjects.push(child);
+    }
+  });
+  console.log(matchingObjects);
+}
+
 //model
 const loader = new GLTFLoader();
-loader.load("./universityModel.glb", (gltf) => {
+loader.load("./clg_with_waypoints.glb", (gltf) => {
   const model = gltf.scene;
   model.position.set(0, -1, 0);
   scene.add(model);
+  get_blender_objects(model);
 })
 
 //light
