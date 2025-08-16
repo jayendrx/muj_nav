@@ -146,6 +146,8 @@ function checkIntersectionsAndBuildGraph(objects) {
     
     return { graph, intersections };
 }
+
+// returns the object closest to given cords
 function findClosestObjectToCoords(coords, objects) {
     let minDistance = Infinity;
     let closestObject = null;
@@ -155,7 +157,7 @@ function findClosestObjectToCoords(coords, objects) {
         
         // Compute bounding box considering rotation and scale
         const box = new THREE.Box3().setFromObject(obj);
-        // Find the closest point on the box to the coordinate
+        // Find the closest point on the bounding box to the coordinate
         const closestPoint = box.clampPoint(point, new THREE.Vector3());
         // Get Euclidean distance to the coordinate
         const distance = closestPoint.distanceTo(point);
@@ -214,6 +216,9 @@ async function get_blender_objects(model) {
     const prefix = "road_";
     const roadObjects = [];
     const locationObjects =[];
+    // this will hold all the objects starting with building prefix
+    // for eg building_ab1
+    const buildingObjects = []; 
     
     model.traverse((child) => {
         if (child.name && child.name.startsWith(prefix)) {
@@ -222,8 +227,16 @@ async function get_blender_objects(model) {
         else if(child.name && child.name.startsWith("location")){
             locationObjects.push(child);
         }
+        else if(child.name && child.name.startsWith("building")){
+            buildingObjects.push(child);
+        }
     });
     
+    for( const obj of buildingObjects){
+        // obj.position.x, obj.position.y, obj.position.z for individual cords
+        console.debug(obj.name, obj.position);
+    }
+
     for (const obj of roadObjects) {
         const box = new THREE.Box3().setFromObject(obj);
         const helper = new THREE.Box3Helper(box, 0xff0000);
@@ -234,7 +247,6 @@ async function get_blender_objects(model) {
         // await sleep(1000);
     }
     
-    // Build graph from intersections
     const { graph, intersections } = checkIntersectionsAndBuildGraph(roadObjects);
     
     console.debug("Graph adjacency list:", graph.adjacencyList);
@@ -246,8 +258,7 @@ async function get_blender_objects(model) {
             const startCords = locationObjects[0].position;
             const endCords = locationObjects[1].position;
             const result = findShortestPathBetweenCoords(startCords, endCords,roadObjects);
-            console.log("result recieved");
-            console.debug(`Shortest path from ${startCords} to ${endCords}:`, result.path);
+            console.debug("Shortest path from", startCords ,"to" ,endCords,"is", result.path);
             console.debug(`Total distance:`, result.distance);
             highlightShortestPathObjects(model, result.path);
         }
