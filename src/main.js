@@ -213,10 +213,14 @@ function highlightShortestPathObjects(model, pathNames) {
 async function get_blender_objects(model) {
     const prefix = "road_";
     const roadObjects = [];
+    const locationObjects =[];
     
     model.traverse((child) => {
         if (child.name && child.name.startsWith(prefix)) {
             roadObjects.push(child);
+        }
+        else if(child.name && child.name.startsWith("location")){
+            locationObjects.push(child);
         }
     });
     
@@ -238,13 +242,15 @@ async function get_blender_objects(model) {
     
     // Find shortest path between two nodes (example)
     if (roadObjects.length >= 2) {
-        const startCords = { x: -14.806 , y: 92.9051 , z: 0.800784 };
-        const endCords = { x: -120.988, y: -30.0771, z: 0.800784  };
-        
-        const result = findShortestPathBetweenCoords(startCords, endCords,roadObjects);
-        console.debug(`Shortest path from ${startCords} to ${endCords}:`, result.path);
-        console.debug(`Total distance:`, result.distance);
-        highlightShortestPathObjects(model, result.path);
+        if(locationObjects.length >= 2){
+            const startCords = locationObjects[0].position;
+            const endCords = locationObjects[1].position;
+            const result = findShortestPathBetweenCoords(startCords, endCords,roadObjects);
+            console.log("result recieved");
+            console.debug(`Shortest path from ${startCords} to ${endCords}:`, result.path);
+            console.debug(`Total distance:`, result.distance);
+            highlightShortestPathObjects(model, result.path);
+        }
     }
     
     return graph;
