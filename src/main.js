@@ -74,15 +74,17 @@ animate();
 function url_parser() {
     const queryString = window.location.search;
     const urlParams = new URLSearchParams(queryString);
-    const location = urlParams.get('location');
     const pos_x1 = urlParams.get('x1');
     const pos_y1 = urlParams.get('y1');
     const pos_x2 = urlParams.get('x2');
     const pos_y2 = urlParams.get('y2');
     if (pos_x1 != null && pos_y1 != null && pos_x2 != null && pos_y2 != null) {
         // findClosestObjectToCoords
-        const startCoords = new THREE.Vector3(pos_x1,0,pos_y1);
-        const endCoords = new THREE.Vector3(pos_x2,0,pos_y2);
+        const startCoords = new THREE.Vector3(pos_x1,2,pos_y1);
+        const endCoords = new THREE.Vector3(pos_x2,2,pos_y2);
+        const locationObjects = getBlenderObjects("location");
+        locationObjects[0].position.set(startCoords);
+        locationObjects[1].position.set(endCoords);
         showPathBetweenCoords(startCoords,endCoords);
     }
     ;
