@@ -83,8 +83,8 @@ function url_parser() {
         const startCoords = new THREE.Vector3(pos_x1,2,pos_y1);
         const endCoords = new THREE.Vector3(pos_x2,2,pos_y2);
         const locationObjects = getBlenderObjects("location");
-        locationObjects[0].position.set(startCoords);
-        locationObjects[1].position.set(endCoords);
+        locationObjects[0].position.set(startCoords.x,startCoords.y,startCoords.z);
+        locationObjects[1].position.set(endCoords.x,endCoords.y,endCoords.z);
         showPathBetweenCoords(startCoords,endCoords);
     }
     ;
