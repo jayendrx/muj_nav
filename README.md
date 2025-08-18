@@ -5,7 +5,7 @@
 supports url paramater like
 ```
 https://jayendrx.github.io/muj_nav/?x1=-13.7&y1=-86.4&x2=-116.9&y2=31.4
-
+```
 ```
 git clone --depth=1 https://github.com/jayendrx/muj_nav
 ```
