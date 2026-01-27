@@ -6,15 +6,17 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import * as THREE from 'three';
 import './style.css';
 
-let model = null; // Global model reference
-let globalScene = null; // Global scene reference
+let model = null;
+let globalScene = null;
+let globalCamera = null;
+let globalControls = null;
 
 function ModelLoader() {
-  const { scene } = useThree();
+  const { scene, camera } = useThree();
   const [modelLoaded, setModelLoaded] = useState(false);
 
   useEffect(() => {
-    globalScene = scene; // Store scene globally for helper functions
+    globalScene = scene; 
     const loader = new GLTFLoader();
     loader.load('/muj_nav/clg_with_waypoints.glb', (gltf) => {
       model = gltf.scene;
@@ -23,15 +25,23 @@ function ModelLoader() {
       setModelLoaded(true);
       afterModelInit();
     });
-  }, [scene]);
+  }, [scene, camera]);
 
   return null;
 }
 
 function Scene() {
+  const controlsRef = useRef();
+
+  useEffect(() => {
+    if (controlsRef.current) {
+      globalControls = controlsRef.current;
+    }
+  }, []);
+
   return (
     <>
-      <OrbitControls />
+      <OrbitControls ref={controlsRef} />
       <ambientLight intensity={3} />
       <directionalLight position={[5, 10, 7.5]} intensity={1} />
       <ModelLoader />
@@ -45,6 +55,17 @@ function App() {
   const [selectedSource, setSelectedSource] = useState('');
   const [selectedDestination, setSelectedDestination] = useState('');
   const [locationObjects, setLocationObjects] = useState([]);
+
+  const handleResetView = () => {
+    if (globalCamera) {
+      globalCamera.position.set(0, 5, 10);
+      globalCamera.updateProjectionMatrix();
+    }
+    if (globalControls) {
+      globalControls.target.set(0, 0, 0);
+      globalControls.update();
+    }
+  };
 
   useEffect(() => {
     // Wait for model to load and extract navigation objects
@@ -155,7 +176,7 @@ function App() {
 
       {/* Bottom Right UI */}
       <div className="ui-bottom-right">
-        <button className="btn-primary">Reset View</button>
+        <button className="btn-primary" onClick={handleResetView}>Reset View</button>
         <button className="btn-secondary">Settings</button>
         <button 
           className="btn-toggle"
@@ -183,7 +204,7 @@ function highlightPathBetweenSelectedObjects(sourceName, destName) {
     if (!sourceName || !destName || sourceName === destName) return;
     
     // Clear previous highlights
-    clearPathHighlight();
+    hidePathObjects();
     
     const roadObjects = getBlenderObjects("road");
     
@@ -205,25 +226,13 @@ function highlightPathBetweenSelectedObjects(sourceName, destName) {
     const endCoords = destObj.position;
     
     const result = findPathBetweenCoords(startCoords, endCoords, roadObjects);
-    highlightPathObjects(result.path);
+    ShowPathObjects(result.path);
     
     console.log("Path from", sourceName, "to", destName, ":", result.path);
     console.log("Distance:", result.distance);
 }
 
-// Clear all path highlights
-function clearPathHighlight() {
-    const roadObjects = getBlenderObjects("road");
-    roadObjects.forEach((obj) => {
-        if (obj.isMesh && obj.material) {
-            // Reset to original material or default color
-            if (obj.material.emissive) {
-                obj.material.emissive.setHex(0x000000);
-            }
-            obj.material.color.setHex(0xffffff);
-        }
-    });
-}
+
 
 // Get the url parameters
 function url_parser() {
@@ -399,7 +408,7 @@ function findClosestObjectToCoords(coords, objects) {
 }
 
 // Function to highlight shortest path objects
-function highlightPathObjects(pathNames) {
+function ShowPathObjects(pathNames) {
     const PATH_COLOR = 0x0000ff;
     model.traverse((child) => {
         if (child.name && pathNames.includes(child.name)) {
@@ -407,7 +416,29 @@ function highlightPathObjects(pathNames) {
             if (child.isMesh && child.material) {
                 child.material = child.material.clone(); // avoid affecting other meshes
                 child.material.color.setHex(PATH_COLOR);
+                child.visible = true;
             }
+        }
+    });
+}
+
+// Clear all path highlights
+function hidePathObjects() {
+    const roadObjects = getBlenderObjects("road");
+    roadObjects.forEach((obj) => {
+        if (obj.isMesh) {
+            // Hide all path objects completely
+            obj.visible = false;
+        }
+    });
+}
+
+// Show all path objects
+function showAllPathObjects() {
+    const roadObjects = getBlenderObjects("road");
+    roadObjects.forEach((obj) => {
+        if (obj.isMesh) {
+            obj.visible = true;
         }
     });
 }
@@ -435,7 +466,7 @@ function findPathBetweenCoords(startCoords, endCoords,objects) {
 function showPathBetweenCoords(startCoords, endCoords){
     const roadObjects = getBlenderObjects("road");
     const result = findPathBetweenCoords(startCoords, endCoords,roadObjects)
-    highlightPathObjects(result.path)
+    ShowPathObjects(result.path)
 }
 
 function findPathBetweenObjects(locationObjects) {
@@ -447,7 +478,7 @@ function findPathBetweenObjects(locationObjects) {
             const result = findPathBetweenCoords(startCords, endCords, roadObjects);
             console.debug("Shortest path from", startCords, "to", endCords, "is", result.path);
             console.debug(`Total distance:`, result.distance);
-            highlightPathObjects(model, result.path);
+            ShowPathObjects(model, result.path);
         }
     }
 }
@@ -478,6 +509,7 @@ function getBlenderObjects(prefix) {
 }
 
 function afterModelInit(){
-    highlightAllPathRed();
+    // highlightAllPathRed();
+    hidePathObjects(); // Hide all paths by default
     url_parser();
 }
