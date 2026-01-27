@@ -278,3 +278,49 @@ button:focus-visible {
   color: white;
   padding: 8px;
 }
+
+/* Responsive Design for Small Screens */
+@media (max-width: 768px) {
+  .ui-top-mid h1 {
+    font-size: 2em;
+    width: max-content;
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .block-selector {
+    width: 160px;
+    padding: 8px;
+  }
+
+  .block-selector label {
+    font-size: 11px;
+  }
+
+  .dropdown {
+    font-size: 12px;
+    padding: 6px;
+  }
+  .ui-top-left {
+    top: 60px;
+    left: 20px;
+  }
+
+  .ui-top-right {
+    top: 60px;
+    right: 20px;
+  }
+
+  .ui-bottom-left {
+    bottom: 130px;
+  }
+
+  .ui-bottom-right {
+    padding: 30px;
+  }
+
+  button {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+}

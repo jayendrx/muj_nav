@@ -41,7 +41,15 @@ function Scene() {
 
   return (
     <>
-      <OrbitControls ref={controlsRef} />
+      <OrbitControls 
+        ref={controlsRef}
+        enablePan={true}
+        enableRotate={true}
+        enableZoom={true}
+        touchRotate={true}
+        touchPan={true}
+        touchZoom={true}
+      />
       <ambientLight intensity={3} />
       <directionalLight position={[5, 10, 7.5]} intensity={1} />
       <ModelLoader />
