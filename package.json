@@ -12,6 +12,10 @@
     "vite": "^7.1.0"
   },
   "dependencies": {
+    "@react-three/drei": "^10.7.7",
+    "@react-three/fiber": "^9.5.0",
+    "react": "^19.2.4",
+    "react-router-dom": "^7.13.0",
     "three": "^0.179.1"
   }
 }

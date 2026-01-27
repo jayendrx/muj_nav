@@ -1,22 +1,158 @@
-:root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-a {
+body, html, #root {
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+}
+
+.container {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  background-color: #1a1a1a;
+}
+
+canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* UI Positioning */
+.ui-top-mid,
+.ui-top-left,
+.ui-top-right,
+.ui-bottom-left,
+.ui-bottom-right {
+  position: absolute;
+  z-index: 10;
+  font-size: 14px;
+  color: #fff;
+}
+.ui-top-mid{
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+}
+
+.ui-top-left {
+  top: 20px;
+  left: 20px;
+}
+
+.ui-top-right {
+  top: 20px;
+  right: 20px;
+}
+
+.ui-bottom-left {
+  bottom: 20px;
+  left: 20px;
+}
+
+.ui-bottom-right {
+  bottom: 20px;
+  right: 20px;
+  display: flex;
+  gap: 10px;
+}
+
+/* Typography */
+h1 {
+  font-size: 28px;
+  margin-bottom: 15px;
+  font-weight: 700;
+}
+
+h2 {
+  font-size: 18px;
+  margin-bottom: 12px;
+  font-weight: 600;
+}
+
+.info-text {
+  font-size: 12px;
+  opacity: 0.8;
+  margin: 4px 0;
+}
+
+/* Panel Styling */
+.panel {
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 15px;
+  backdrop-filter: blur(10px);
+  min-width: 200px;
+}
+
+.info-item {
+  display: flex;
+  justify-content: space-between;
+  margin: 8px 0;
+  font-size: 13px;
+}
+
+.info-item span:first-child {
+  opacity: 0.7;
+}
+
+.status-active {
+  color: #4ade80;
+  font-weight: 600;
+}
+
+/* Button Styling */
+button {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
   font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.btn-primary {
+  background: #3b82f6;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #2563eb;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px);
+}
+
+.btn-toggle {
+  background: rgba(59, 130, 246, 0.8);
+  color: white;
+  padding: 8px 14px;
+  font-size: 12px;
+}
+
+.btn-toggle:hover {
+  background: #3b82f6;
 }
 a:hover {
   color: #535bf2;
@@ -93,4 +229,52 @@ button:focus-visible {
   button {
     background-color: #f9f9f9;
   }
+}
+/* Block Selector Dropdown */
+.block-selector {
+  width: 200px;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  padding: 10px;
+  margin-bottom: 12px;
+  backdrop-filter: blur(10px);
+}
+
+.block-selector label {
+  display: block;
+  font-size: 12px;
+  margin-bottom: 6px;
+  opacity: 0.8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.dropdown {
+  width: 100%;
+  padding: 8px;
+  background: rgba(59, 130, 246, 0.3);
+  border: 1px solid rgba(59, 130, 246, 0.6);
+  border-radius: 4px;
+  color: white;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.dropdown:hover {
+  background: rgba(59, 130, 246, 0.5);
+  border-color: rgba(59, 130, 246, 1);
+}
+
+.dropdown:focus {
+  outline: none;
+  background: rgba(59, 130, 246, 0.6);
+  box-shadow: 0 0 8px rgba(59, 130, 246, 0.4);
+}
+
+.dropdown option {
+  background: #1a1a1a;
+  color: white;
+  padding: 8px;
 }

@@ -1,74 +1,229 @@
-import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import React, { StrictMode, useState, useEffect, useRef } from 'react';
+import { createRoot } from 'react-dom/client';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import { OrbitControls } from '@react-three/drei';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import * as THREE from 'three';
+import './style.css';
 
-const canvas = document.getElementById('canvas');
+let model = null; // Global model reference
+let globalScene = null; // Global scene reference
 
-// Creating a scene
-const scene = new THREE.Scene();
-const axesHelper = new THREE.AxesHelper(5);
-scene.add(axesHelper);
+function ModelLoader() {
+  const { scene } = useThree();
+  const [modelLoaded, setModelLoaded] = useState(false);
 
+  useEffect(() => {
+    globalScene = scene; // Store scene globally for helper functions
+    const loader = new GLTFLoader();
+    loader.load('/muj_nav/clg_with_waypoints.glb', (gltf) => {
+      model = gltf.scene;
+      model.position.set(0, -1, 0);
+      scene.add(model);
+      setModelLoaded(true);
+      afterModelInit();
+    });
+  }, [scene]);
 
-// Camera
-const camera = new THREE.PerspectiveCamera(
-    40,
-    window.innerWidth / window.innerHeight,
-    0.01,
-    1000
-);
-camera.position.set(0, 5, 10);
-
-// Model loading
-const loader = new GLTFLoader();
-let model = null; // making the model global
-loader.load("./clg_with_waypoints.glb", (gltf) => {
-    model = gltf.scene;
-    model.position.set(0, -1, 0);
-    scene.add(model);
-    afterModelInit();
-});
-
-// Light
-const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-directionalLight.position.set(5, 10, 7.5);
-const ambientLight = new THREE.AmbientLight(0xffffff, 3);
-scene.add(ambientLight);
-scene.add(directionalLight);
-
-// Orbit controls
-const controls = new OrbitControls(camera, document.getElementById("canvas"));
-controls.enableDamping = true;
-controls.enablePan = true;
-controls.enableZoom = true;
-
-// Renderer
-const renderer = new THREE.WebGLRenderer({
-    canvas,
-    antialias: true,
-});
-renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setPixelRatio(window.devicePixelRatio);
-renderer.clearColor(0xffffff, 1.0);
-
-// Resize
-window.addEventListener("resize", () => {
-    console.debug("resizing");
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    controls.update();
-});
-
-function animate() {
-    controls.update();
-    renderer.render(scene, camera);
-    requestAnimationFrame(animate);
+  return null;
 }
 
-animate();
+function Scene() {
+  return (
+    <>
+      <OrbitControls />
+      <ambientLight intensity={3} />
+      <directionalLight position={[5, 10, 7.5]} intensity={1} />
+      <ModelLoader />
+      <axesHelper args={[5]} />
+    </>
+  );
+}
 
+function App() {
+  const [isVisible, setIsVisible] = useState(true);
+  const [selectedSource, setSelectedSource] = useState('');
+  const [selectedDestination, setSelectedDestination] = useState('');
+  const [locationObjects, setLocationObjects] = useState([]);
+
+  useEffect(() => {
+    // Wait for model to load and extract navigation objects
+    const checkModelLoaded = setInterval(() => {
+      if (model) {
+        const navObjects = getBlenderObjects("road");
+        if (navObjects.length > 0) {
+          setLocationObjects(navObjects);
+          if (selectedSource === '') setSelectedSource(navObjects[0].name);
+          if (selectedDestination === '') setSelectedDestination(navObjects[1]?.name || '');
+          clearInterval(checkModelLoaded);
+        }
+      }
+    }, 100);
+    return () => clearInterval(checkModelLoaded);
+  }, []);
+
+  const handleSourceSelect = (e) => {
+    setSelectedSource(e.target.value);
+    if (selectedDestination && selectedDestination !== e.target.value) {
+      highlightPathBetweenSelectedObjects(e.target.value, selectedDestination);
+    }
+  };
+
+  const handleDestinationSelect = (e) => {
+    setSelectedDestination(e.target.value);
+    if (selectedSource && selectedSource !== e.target.value) {
+      highlightPathBetweenSelectedObjects(selectedSource, e.target.value);
+    }
+  };
+
+  return (
+    <div className="container">
+      <Canvas
+        camera={{
+          position: [0, 5, 10],
+          fov: 40,
+          near: 0.01,
+          far: 1000,
+        }}
+        gl={{ antialias: true, clearColor: 0xffffff }}
+      >
+        <Scene />
+      </Canvas>
+
+        <div className="ui-top-mid">
+            <h1>MUJ Navigation</h1>
+        </div>
+      {/* Top Left UI */}
+      <div className="ui-top-left">
+        <div className="block-selector">
+          <label htmlFor="source-dropdown">Select Source:</label>
+          <select 
+            id="source-dropdown"
+            value={selectedSource}
+            onChange={handleSourceSelect}
+            className="dropdown"
+          >
+            <option value="">Choose location...</option>
+            {locationObjects.map((obj) => (
+              <option key={obj.name} value={obj.name}>
+                {obj.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {/* Top Right UI */}
+      <div className="ui-top-right">
+        <div className="block-selector">
+          <label htmlFor="destination-dropdown">Select Destination:</label>
+          <select 
+            id="destination-dropdown"
+            value={selectedDestination}
+            onChange={handleDestinationSelect}
+            className="dropdown"
+          >
+            <option value="">Choose location...</option>
+            {locationObjects.map((obj) => (
+              <option key={obj.name} value={obj.name}>
+                {obj.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {/* Bottom Left UI */}
+      {isVisible && (
+        <div className="ui-bottom-left">
+        <p className="info-text">Rotate: Left click + Drag</p>
+        <p className="info-text">Zoom: Scroll wheel</p>
+        <p className="info-text">Pan: Right click + Drag</p>
+          <div className="panel">
+            <h2>Scene Info</h2>
+            <div className="info-item">
+              <span>Model:</span>
+              <span>CLG with Waypoints</span>
+            </div>
+            <div className="info-item">
+              <span>Status:</span>
+              <span className="status-active">Active</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bottom Right UI */}
+      <div className="ui-bottom-right">
+        <button className="btn-primary">Reset View</button>
+        <button className="btn-secondary">Settings</button>
+        <button 
+          className="btn-toggle"
+          onClick={() => setIsVisible(!isVisible)}
+        >
+          {isVisible ? 'Hide Info' : 'Show Info'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+createRoot(document.getElementById('root')).render(
+  <StrictMode>
+    <App/>
+  </StrictMode> 
+);
+
+
+
+// ============== Helper Functions ==============
+
+// Highlight path between selected objects by name
+function highlightPathBetweenSelectedObjects(sourceName, destName) {
+    if (!sourceName || !destName || sourceName === destName) return;
+    
+    // Clear previous highlights
+    clearPathHighlight();
+    
+    const roadObjects = getBlenderObjects("road");
+    
+    // Find location objects by name to get their positions
+    let sourceObj = null;
+    let destObj = null;
+    
+    model.traverse((child) => {
+        if (child.name === sourceName) sourceObj = child;
+        if (child.name === destName) destObj = child;
+    });
+    
+    if (!sourceObj || !destObj) {
+        console.error("Could not find source or destination objects");
+        return;
+    }
+    
+    const startCoords = sourceObj.position;
+    const endCoords = destObj.position;
+    
+    const result = findPathBetweenCoords(startCoords, endCoords, roadObjects);
+    highlightPathObjects(result.path);
+    
+    console.log("Path from", sourceName, "to", destName, ":", result.path);
+    console.log("Distance:", result.distance);
+}
+
+// Clear all path highlights
+function clearPathHighlight() {
+    const roadObjects = getBlenderObjects("road");
+    roadObjects.forEach((obj) => {
+        if (obj.isMesh && obj.material) {
+            // Reset to original material or default color
+            if (obj.material.emissive) {
+                obj.material.emissive.setHex(0x000000);
+            }
+            obj.material.color.setHex(0xffffff);
+        }
+    });
+}
 
 // Get the url parameters
 function url_parser() {
@@ -303,7 +458,7 @@ function highlightAllPathRed(){
     for (const obj of roadObjects) {
         const box = new THREE.Box3().setFromObject(obj);
         const helper = new THREE.Box3Helper(box, 0xff0000);
-        scene.add(helper);
+        globalScene.add(helper);
 
         // console.log(obj.name, obj.position.x, obj.position.y, obj.position.z);
         // camera.position.set(obj.position.x, obj.position.y, obj.position.z);
